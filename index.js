@@ -12,8 +12,12 @@ import dashboardRouter from "./routes/dashboard.js"
 connectToDatabase(); //connect to database
 const app = express()    //create express app
 app.use(cors({
-    origin: "https://ems-frontend-silk.vercel.app/",
-    credentials: true
+    origin: [
+        'https://ems-frontend-silk.vercel.app',  
+        'http://localhost:5173',  // Keeping for local development
+    ],
+    credentials: true,  // Allow cookies if needed
+    optionsSuccessStatus: 200
 }));
 app.use(express.json());   //middleware to parse JSON request bodies(passing data to node js file to json format)
 app.use(express.static("public/uploads"))
