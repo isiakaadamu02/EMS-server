@@ -6,16 +6,30 @@ import EmployeeModel from "../models/Employee.js"
 import path from "path"
 
 //to store images uploaded
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "public/uploads") //cb; callback func
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname))
-    }
-})
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, "public/uploads") //cb; callback func
+//     },
+//     filename: (req, file, cb) => {
+//         cb(null, Date.now() + path.extname(file.originalname))
+//     }
+// })
 
-const upload = multer({storage: storage})
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'employee_images',
+        allowed_formats: ['jpg', 'png', 'jpeg'],
+    }
+});
+
+const upload = multer({storage})
 
 const addEmployee = async (req, res) => {
     try {
