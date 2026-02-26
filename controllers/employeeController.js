@@ -1,0 +1,146 @@
+import multer from "multer"
+import UserModel from "../models/User.js"
+import bcrypt from "bcrypt"
+import Employee from "../models/Employee.js"
+import EmployeeModel from "../models/Employee.js"
+import path from "path"
+
+//to store images uploaded
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "public/uploads") //cb; callback func
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+})
+
+const upload = multer({storage: storage})
+
+const addEmployee = async (req, res) => {
+    try {
+        const {
+        name,
+        email,
+        // employeeId,
+        dob,
+        gender,
+        maritalStatus,
+        designation,
+        department,
+        salary,
+        password,
+        role
+    } = req.body
+
+
+    const user = await UserModel.findOne({email})
+    if(user) {
+        return res.status(400).json({success: false, error: "user already registered in emp"})
+    }
+
+    // Auto-generate employee ID
+        const employeeCount = await EmployeeModel.countDocuments();
+        const employeeId = `EMP${String(employeeCount + 1).padStart(4, '0')}`; // Generates EMP0001, EMP0002, etc
+    
+    const hashPassword = await bcrypt.hash(password, 10)
+
+    const newUser = new UserModel ({
+        name,
+        email,
+        password: hashPassword,
+        role,
+        profileImage: req.file ? req.file.filename : ""  //if the image exist, restore the image in the serve, else if nothing is uploaded, return an empty string
+    })
+    const savedUser = await newUser.save() // new created user will be stored here inside the saved user
+
+    const newEmployee = new Employee({
+        userId: savedUser._id,
+        employeeId,
+        dob, 
+        gender,
+        maritalStatus,
+        designation,
+        department,
+        salary,
+    })
+
+    await newEmployee.save()
+
+    return res.status(200).json({success:true, message: "employee created"})
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({success: false, error: "server error in adding employee"})
+    }
+    
+}
+
+const getEmployees = async (req, res) => {
+    try {
+        const employees = await EmployeeModel.find().populate("userId", {password: 0}).populate("department"); // Find all employees in the database, populate userId nd Department and prevent returning of passwprd
+        return res.status(200).json({success: true, employees}) // Return the list of employees
+    } catch (error) {
+        console.error("Error fetching employees:", error);
+        return res.status(500).json({ error: "Get employees server error" });
+    }
+}
+
+const getEmployee = async (req, res) => {
+    const  {id} = req.params;
+    try {
+        let employee;
+        // First try to find by employee _id
+        employee = await EmployeeModel.findById({_id: id}).populate("userId", {password: 0}).populate("department"); // Find an employee in the database, populate userId nd Department and prevent returning of passwprd
+        // If not found, try to find by userId
+        if(!employee) {
+            employee = await EmployeeModel.findOne({userId: id}).populate("userId", {password: 0}).populate("department");
+        }
+        return res.status(200).json({success: true, employee}) // Return the list of employee
+    } catch (error) {
+        console.error("Error fetching employee:", error);
+        return res.status(500).json({ error: "Get employee server error" });
+    }
+}
+
+// controllers/employeeController.js
+const updateEmployee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, maritalStatus, designation, salary, department } = req.body;
+
+        // Find the employee
+        const employee = await EmployeeModel.findById(id);
+        if (!employee) {
+            return res.status(404).json({ success: false, error: "Employee not found" });
+        }
+
+        // Update user info
+        await UserModel.findByIdAndUpdate(employee.userId, { name });
+
+        // Update employee info
+        const updatedEmployee = await EmployeeModel.findByIdAndUpdate(
+            id,
+            { maritalStatus, designation, salary, department },
+            { new: true }
+        ).populate("userId", { password: 0 }).populate("department");
+
+        return res.status(200).json({ success: true, employee: updatedEmployee });
+    } catch (error) {
+        console.error("Error updating employee:", error);
+        return res.status(500).json({ success: false, error: "Update employee server error" });
+    }
+}
+
+const fetchEmployeesByDepId = async (req, res) => {
+    const  {id} = req.params;
+    try {
+        const employees = await EmployeeModel.find({department: id}) //find department by id
+        return res.status(200).json({success: true, employees}) // Return the list of employee
+    } catch (error) {
+        console.error("Error fetching employee:", error);
+        return res.status(500).json({ error: "Get employeesbyDepId server error" });
+    }
+}
+
+export { addEmployee, upload, getEmployees, getEmployee, updateEmployee, fetchEmployeesByDepId };
+
