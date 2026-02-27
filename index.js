@@ -9,7 +9,7 @@ import leaveRouter from "./routes/leave.js"
 import settingRouter from "./routes/setting.js"
 import dashboardRouter from "./routes/dashboard.js"
 
-connectToDatabase(); //connect to database
+// connectToDatabase(); //connect to database
 const app = express()    //create express app
 app.use(cors({
     origin: [
@@ -28,16 +28,31 @@ app.use((req, res, next) => {
     next();
 });
 
+// app.use(async (req, res, next) => {
+//     try {
+//         await connectToDatabase();
+//         next();
+//     } catch (error) {
+//         console.error("Database connection failed:", error);
+//         res.status(500).json({ error: "Database connection failed" });
+//     }
+// });
+
 app.use(async (req, res, next) => {
     try {
         await connectToDatabase();
         next();
     } catch (error) {
         console.error("Database connection failed:", error);
-        res.status(500).json({ error: "Database connection failed" });
+        res.status(500).json({ 
+            success: false, 
+            error: "Database connection failed",
+            message: error.message 
+        });
     }
 });
 
+//Routes
 app.use("/api/auth", authRouter) //route link for all auth related routes
 app.use("/api/department", departmentRouter) //route link for all department related routes
 app.use("/api/employee", employeeRouter)
@@ -46,6 +61,10 @@ app.use("/api/leave", leaveRouter)
 app.use("/api/setting", settingRouter)
 app.use("/api/dashboard", dashboardRouter)
 
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // For Vercel, export the app
 export default app;

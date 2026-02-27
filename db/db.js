@@ -10,11 +10,11 @@
         return;
     }
     try {
-        await mongoose.connect(process.env.MONGODB_URL)
-        // await mongoose.connect(process.env.MONGODB_URL, {
-        //     serverSelectionTimeoutMS: 5000,
-        //     socketTimeoutMS: 45000,
-        // });
+        // await mongoose.connect(process.env.MONGODB_URL)
+        await mongoose.connect(process.env.MONGODB_URL, {
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
         
         isConnected = true;
         console.log("Database connected successfully");
