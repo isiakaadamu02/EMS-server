@@ -7,6 +7,7 @@ import employeeRouter from "./routes/employee.js"
 import salaryRouter from "./routes/salary.js"
 import leaveRouter from "./routes/leave.js"
 import settingRouter from "./routes/setting.js"
+import attendanceRouter from "./routes/attendance.js"
 import dashboardRouter from "./routes/dashboard.js"
 
 // connectToDatabase(); //connect to database
@@ -59,6 +60,7 @@ app.use("/api/employee", employeeRouter)
 app.use("/api/salary", salaryRouter)
 app.use("/api/leave", leaveRouter)
 app.use("/api/setting", settingRouter)
+app.use("/api/attendance", attendanceRouter)
 app.use("/api/dashboard", dashboardRouter)
 
 // Health check
