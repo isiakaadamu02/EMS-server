@@ -6,6 +6,6 @@ import defaultAttendance from "../middleware/defaultAttendance.js"
 const router = express.Router()
 //authmiddleware verifies if user is logged in
 //defaultAttendance middleware verifies if user has attendance
-router.post("/", authMiddleware, defaultAttendance, getAttendance)
+router.get("/", authMiddleware, defaultAttendance, getAttendance)
 
 export default router;

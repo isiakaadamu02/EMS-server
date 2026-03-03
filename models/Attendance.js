@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const AttendanceSchema = new mongoose.Schema({
     date: {
         type: {
-            type: String,
+            type: Date,
             required: true
         },
     },

@@ -12,6 +12,8 @@ const getAttendance = async (req, res) => {
                 "userId"
             ]
         })
+        
+        console.log("Found attendance records:", attendance.length);
         res.status(200).json({success: true, attendance})
     } catch (error) {
         console.error("Error fetching attendance:", error.message);
