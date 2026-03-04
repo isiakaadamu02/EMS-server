@@ -1,4 +1,5 @@
 import Attendance from "../models/Attendance.js";
+import EmployeeModel from "../models/Employee.js";
 
 const defaultAttendance = async (req, res, next) => {
     try {

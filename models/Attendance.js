@@ -3,10 +3,8 @@ import mongoose from "mongoose";
 
 const AttendanceSchema = new mongoose.Schema({
     date: {
-        type: {
-            type: Date,
-            required: true
-        },
+        type: Date,
+        required: true
     },
     employeeId: {
         type: mongoose.Schema.Types.ObjectId,
