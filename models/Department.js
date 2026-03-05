@@ -13,6 +13,7 @@ const departmentSchema = new mongoose.Schema({
 //whenever the deleteOne method is called, the departmentSchema will be called
 departmentSchema.pre("deleteOne", {document: true, query: false}, async function(next) {
 try {
+    console.log(" Cascade deleting for department:", this._id);
     //accessing the id of the department that is called
     const employees = await EmployeeModel.find({department: this._id})
     const empIds = employees.map(emp => emp._id)
@@ -22,7 +23,7 @@ try {
     await SalaryModel.deleteMany({employeeId: {$in : empIds}})
     next()
 } catch (error) {
-    next(error)
+    next
 }
 })
 

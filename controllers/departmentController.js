@@ -58,7 +58,16 @@ const deleteDepartments = async (req, res) => {
   try {
         const {id} = req.params; //get department id from request parameters
         //find and delete the department by id
-        const deleteDepartment = await DepartmentModel.findById({_id: id}) 
+        const deleteDepartment = await DepartmentModel.findById(id);
+
+        if (!deleteDepartment) {
+            return res.status(404).json({ 
+                success: false, 
+                error: "Department not found" 
+            });
+        }
+        console.log("Found deleteDepartment:", deleteDepartment.dep_name);
+
         // when it is called it will trigger the middleware in department model, where it deletes everything associated with the dept
         await deleteDepartment.deleteOne()
         return res.status(200).json({success: true, department: deleteDepartment})
