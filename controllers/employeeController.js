@@ -63,6 +63,7 @@ const addEmployee = async (req, res) => {
         role
     } = req.body
 
+    console.log("Adding employee:", { name, email, role });
 
     const user = await UserModel.findOne({email})
     if(user) {
@@ -79,6 +80,7 @@ const addEmployee = async (req, res) => {
         if (req.file) {
             console.log(" Uploading to Vercel Blob...");
 
+            try {
             const blob = await put(
                 `employee-images/${employeeId}-${Date.now()}-${req.file.originalname.split('.').pop()}`,
                 req.file.buffer,
@@ -89,6 +91,15 @@ const addEmployee = async (req, res) => {
             );
             profileImageUrl = blob.url;
             console.log("Image uploaded:", profileImageUrl);
+        } catch (uploadError) {
+            console.error(" Blob upload error:", uploadError);
+                // Continue without image if upload fails
+                profileImageUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=500&background=random&color=fff&bold=true`;
+            }
+        
+        } else {
+            //  No file uploaded - use placeholder
+            profileImageUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=500&background=random&color=fff&bold=true`;
         }
 
    
