@@ -5,7 +5,7 @@ import Employee from "../models/Employee.js"
 import EmployeeModel from "../models/Employee.js"
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import path from "path"
+import { put } from '@vercel/blob';
 
 //to store images uploaded
 // const storage = multer.diskStorage({
@@ -17,21 +17,35 @@ import path from "path"
 //     }
 // })
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
+// cloudinary.config({
+//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//     api_key: process.env.CLOUDINARY_API_KEY,
+//     api_secret: process.env.CLOUDINARY_API_SECRET
+// });
 
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'employee_images',
-        allowed_formats: ['jpg', 'png', 'jpeg'],
+// const storage = new CloudinaryStorage({
+//     cloudinary: cloudinary,
+//     params: {
+//         folder: 'employee_images',
+//         allowed_formats: ['jpg', 'png', 'jpeg'],
+//     }
+// });
+
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only JPEG, PNG allowed.'));
+        }
     }
 });
 
-const upload = multer({storage})
+// const upload = multer({storage})
 
 const addEmployee = async (req, res) => {
     try {
@@ -55,9 +69,29 @@ const addEmployee = async (req, res) => {
         return res.status(400).json({success: false, error: "user already registered in emp"})
     }
 
-    // Auto-generate employee ID
+     // Auto-generate employee ID
         const employeeCount = await EmployeeModel.countDocuments();
         const employeeId = `EMP${String(employeeCount + 1).padStart(4, '0')}`; // Generates EMP0001, EMP0002, etc
+
+    let profileImageUrl = "";
+
+        // Upload to Vercel Blob
+        if (req.file) {
+            console.log(" Uploading to Vercel Blob...");
+
+            const blob = await put(
+                `employee-images/${employeeId}-${Date.now()}-${req.file.originalname.split('.').pop()}`,
+                req.file.buffer,
+                {
+                    access: 'public',
+                    token: process.env.BLOB_READ_WRITE_TOKEN,
+                }
+            );
+            profileImageUrl = blob.url;
+            console.log("Image uploaded:", profileImageUrl);
+        }
+
+   
     
     const hashPassword = await bcrypt.hash(password, 10)
 
