@@ -100,7 +100,7 @@ const addEmployee = async (req, res) => {
         email,
         password: hashPassword,
         role,
-        profileImage: req.file ? req.file.filename : ""  //if the image exist, restore the image in the serve, else if nothing is uploaded, return an empty string
+        profileImage: profileImageUrl  //if the image exist, restore the image in the serve, else if nothing is uploaded, return an empty string
     })
     const savedUser = await newUser.save() // new created user will be stored here inside the saved user
 
