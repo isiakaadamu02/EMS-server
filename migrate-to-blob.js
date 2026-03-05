@@ -1,53 +1,51 @@
-
+// migrate-to-blob.js
 import UserModel from "./models/User.js";
 import connectToDatabase from "./db/db.js";
 import { put } from '@vercel/blob';
-import fs from 'fs';
-import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const migrateToBlob = async () => {
     try {
+        if (!process.env.MONGODB_URL) {
+            console.error("❌ MONGODB_URL not found in .env file!");
+            process.exit(1);
+        }
+        
+        if (!process.env.BLOB_READ_WRITE_TOKEN) {
+            console.error("❌ BLOB_READ_WRITE_TOKEN not found!");
+            process.exit(1);
+        }
+        
         await connectToDatabase();
         
-        const users = await UserModel.find({ 
-            profileImage: { $ne: "" } 
-        });
+        // ✅ Find users with non-empty profileImage OR undefined
+        const users = await UserModel.find({});
         
-        console.log(`📊 Found ${users.length} users with images`);
+        console.log(`\n📊 Found ${users.length} total users\n`);
         
         for (const user of users) {
-            // Skip if already a full URL
-            if (user.profileImage.startsWith('http')) {
-                console.log(`⏭️  ${user.name} already has URL, skipping`);
+            console.log(`\n👤 Processing: ${user.name}`);
+            console.log(`   Current image: ${user.profileImage || 'EMPTY'}`);
+            
+            // ✅ Skip if already has a valid URL
+            if (user.profileImage && user.profileImage.startsWith('http')) {
+                console.log(`   ✅ Already has full URL, skipping`);
                 continue;
             }
             
-            // Read old file from local storage
-            const oldPath = path.join('public/uploads', user.profileImage);
+            // ✅ For undefined, empty, or filename - set placeholder
+            const placeholderUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=500&background=random&color=fff&bold=true`;
             
-            if (fs.existsSync(oldPath)) {
-                const fileBuffer = fs.readFileSync(oldPath);
-                
-                // Upload to Vercel Blob
-                const blob = await put(
-                    `employee-images/${user.profileImage}`,
-                    fileBuffer,
-                    {
-                        access: 'public',
-                        token: process.env.BLOB_READ_WRITE_TOKEN,
-                    }
-                );
-                
-                user.profileImage = blob.url;
-                await user.save();
-                
-                console.log(`✅ Migrated ${user.name}: ${blob.url}`);
-            } else {
-                console.log(`❌ File not found for ${user.name}: ${oldPath}`);
-            }
+            user.profileImage = placeholderUrl;
+            await user.save();
+            
+            console.log(`   ✅ Updated to placeholder`);
         }
         
-        console.log("✅ Migration complete!");
+        console.log("\n✅ Migration complete!");
+        console.log("⚠️  All users now have placeholder avatars.\n");
         process.exit(0);
     } catch (error) {
         console.error("❌ Error:", error);
