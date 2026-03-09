@@ -129,6 +129,7 @@ const clockIn = async (req, res) => {
 
         //if user is not clocked in yet then...
         if (!attendance) {
+            console.log("No attendance record found, creating new one");
             //Create new attendance record
             attendance = new Attendance({
                 employeeId: employee._id,

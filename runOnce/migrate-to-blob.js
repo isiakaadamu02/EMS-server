@@ -1,6 +1,6 @@
 // migrate-to-blob.js
-import UserModel from "./models/User.js";
-import connectToDatabase from "./db/db.js";
+import UserModel from "../models/User.js";
+import connectToDatabase from "../db/db.js";
 import { put } from '@vercel/blob';
 import dotenv from 'dotenv';
 
