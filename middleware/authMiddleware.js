@@ -15,11 +15,20 @@ const verifyUser = async (req, res, next) => {
             return res.status(404).json({success: false, error: "Invalid Token"})
         }
 
-        const user = await UserModel.findById({_id: decoded._id}).select("-password")
+        const user = await UserModel.findById(decoded._id).select("-password")
         if(!user) {
             return res.status(404).json({success: false, error: "User not found"})
         }
-        req.user = user;
+        // req.user = user;
+        
+        //Add userId property for compatibility
+        req.user = {
+            _id: user._id,
+            userId: user._id,  // Add this - it's what the employee record references
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
         next();
     } catch (error) {
         return res.status(500).json({ error: "Internal server error" });

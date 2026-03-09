@@ -3,8 +3,8 @@ import UserModel from "../models/User.js"
 import bcrypt from "bcrypt"
 import Employee from "../models/Employee.js"
 import EmployeeModel from "../models/Employee.js"
-import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+// import { v2 as cloudinary } from 'cloudinary';
+// import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { put } from '@vercel/blob';
 
 //to store images uploaded
