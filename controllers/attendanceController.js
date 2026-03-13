@@ -321,7 +321,12 @@ const attendanceReport = async (req, res) => {
                 status: record.status || "Not Marked",
                 clockIn: record.clockIn,
                 clockOut: record.clockOut,
-                totalHours: record.totalHours ? record.totalHours.toFixed(2) : "0.00"
+                totalHours: record.totalHours ? record.totalHours.toFixed(2) : "0.00",
+                shiftStartTime: record.employeeId?.shiftStartTime || "N/A",
+                shiftEndTime: record.employeeId?.shiftEndTime || "N/A",
+                estimatedWorkHours: record.employeeId?.estimatedWorkHours 
+                    ? record.employeeId.estimatedWorkHours.toFixed(2) 
+                    : "0.00"
             })
             return result;
         }, {})

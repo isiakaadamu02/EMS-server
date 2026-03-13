@@ -60,10 +60,12 @@ const addEmployee = async (req, res) => {
         department,
         salary,
         password,
-        role
+        role,
+        shiftStartTime,
+        shiftEndTime 
     } = req.body
 
-    console.log("Adding employee:", { name, email, role });
+    console.log("Adding employee:", { name, email, role, shiftStartTime, shiftEndTime });
 
     const user = await UserModel.findOne({email})
     if(user) {
@@ -124,6 +126,8 @@ const addEmployee = async (req, res) => {
         designation,
         department,
         salary,
+        shiftStartTime: shiftStartTime || "09:00",
+        shiftEndTime: shiftEndTime || "17:00"       
     })
 
     await newEmployee.save()
@@ -148,13 +152,31 @@ const getEmployees = async (req, res) => {
 
 const getEmployee = async (req, res) => {
     const  {id} = req.params;
+
+    // Validate ID BEFORE the try-catch
+    if (!id || id === 'undefined' || id === 'null') {
+        console.log("Invalid ID received:", id);
+        return res.status(400).json({ 
+            success: false, 
+            error: "Invalid employee ID" 
+        });
+    }
+
     try {
         let employee;
+        console.log("Fetching employee with ID:", id);
         // First try to find by employee _id
-        employee = await EmployeeModel.findById({_id: id}).populate("userId", {password: 0}).populate("department"); // Find an employee in the database, populate userId nd Department and prevent returning of passwprd
+        employee = await EmployeeModel.findById(id).populate("userId", {password: 0}).populate("department"); // Find an employee in the database, populate userId nd Department and prevent returning of passwprd
         // If not found, try to find by userId
         if(!employee) {
             employee = await EmployeeModel.findOne({userId: id}).populate("userId", {password: 0}).populate("department");
+        }
+        if (!employee) {
+            console.log("Employee not found for ID:", id);
+            return res.status(404).json({ 
+                success: false, 
+                error: "Employee not found" 
+            });
         }
         return res.status(200).json({success: true, employee}) // Return the list of employee
     } catch (error) {
@@ -167,7 +189,7 @@ const getEmployee = async (req, res) => {
 const updateEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, maritalStatus, designation, salary, department } = req.body;
+        const { name, maritalStatus, designation, salary, department, shiftStartTime, shiftEndTime } = req.body;
 
         // Find the employee
         const employee = await EmployeeModel.findById(id);
@@ -181,9 +203,15 @@ const updateEmployee = async (req, res) => {
         // Update employee info
         const updatedEmployee = await EmployeeModel.findByIdAndUpdate(
             id,
-            { maritalStatus, designation, salary, department },
+            { maritalStatus, designation, salary, department, shiftStartTime, shiftEndTime },
             { new: true }
         ).populate("userId", { password: 0 }).populate("department");
+
+        console.log("Employee updated with shift:", {
+            shiftStartTime: updatedEmployee.shiftStartTime,
+            shiftEndTime: updatedEmployee.shiftEndTime,
+            estimatedWorkHours: updatedEmployee.estimatedWorkHours
+        });
 
         return res.status(200).json({ success: true, employee: updatedEmployee });
     } catch (error) {
